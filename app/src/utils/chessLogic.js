@@ -1,13 +1,11 @@
 export class ChessGame {
   constructor() {
-    this.board = this.initialSetup();
+    this.fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
     this.turn = "white";
     this.gameOver = false;
   }
 
-  initialSetup() {
-    this.fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
-  }
+  findPiece(position) {}
 
   move(from, to) {}
 

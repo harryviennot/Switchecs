@@ -21,9 +21,9 @@ const GamePage = () => {
   const lightSquareStyle = { backgroundColor: "#F5F5DC" };
 
   const handleMove = ({ sourceSquare, targetSquare }) => {
+    console.log(sourceSquare, targetSquare);
     const move = game.move(sourceSquare, targetSquare);
     if (move !== null) {
-      // if the move was valid, update the board
       setFen(game.getFen());
     }
   };
