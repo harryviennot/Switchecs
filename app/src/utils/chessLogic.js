@@ -21,10 +21,8 @@ export class ChessGame {
     var verify = this.Queen(newfrom, newto)
     if (verify) {
       var Matrix = this.createMatrix()
-      console.log(Matrix)
       Matrix[8 - newto[1]][newto[0] - 1] = Matrix[8 - newfrom[1]][newfrom[0] - 1]
       Matrix[8 - newfrom[1]][newfrom[0] - 1] = "-"
-      console.log(Matrix)
       this.fen = this.MatToFen(Matrix)  
     }
     return verify
@@ -99,7 +97,6 @@ export class ChessGame {
     if (y > 8 || y <= 0)
       return false
     var matrix = this.createMatrix()
-    console.log("x = " + x + "\ny = " + (9 - y) + "\nvalue = " + matrix[y - 1][x - 1])
     return matrix[y - 1][x - 1]
   }
   
