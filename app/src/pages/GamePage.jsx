@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import Chessboard from "chessboardjsx";
+import { useNavigate } from "react-router-dom";
 import { SocketContext } from "../contexts/SocketContext";
 import "../styles/GamePage.css";
 
@@ -13,6 +14,7 @@ const GamePage = () => {
   const [turn, setTurn] = useState("white");
   const [color, setColor] = useState("white");
   const [result, setResult] = useState("");
+  const navigate = useNavigate();
 
   const boardStyle = {
     borderRadius: "5px",
@@ -29,6 +31,7 @@ const GamePage = () => {
 
   const handleLeaveGame = () => {
     socket.emit("leave", gamePin);
+    navigate("/");
   };
 
   useEffect(() => {
@@ -66,7 +69,8 @@ const GamePage = () => {
       setResult(winner === color ? "You won!" : "You lost!");
     };
 
-    const userLeft = () => {
+    const userLeft = (gamePin) => {
+      console.log("user left");
       setResult("Opponent left");
     };
 
@@ -74,7 +78,7 @@ const GamePage = () => {
     socket.on("color", onColor);
     socket.on("switch turns", onSwitchTurns);
     socket.on("game won", onGameWon);
-    socket.on("user left", userLeft);
+    socket.on("userLeft", userLeft);
 
     return () => {
       socket.off("update", onUpdate);
@@ -92,15 +96,12 @@ const GamePage = () => {
   }, [gamePin, socket]);
 
   return (
-    <div className={"game-page"}>
+    <div className={"game-page " + color}>
       <div className="game-info">
         <small className="game-pin">Game Pin: {gamePin}</small>
-        <h1>
-          {result ||
-            `Turn: ${turn === color ? "Your turn" : "Opponent's turn"}`}
-        </h1>
+        <h1>{result || turn === color ? "Your turn" : "Opponent's turn"}</h1>
       </div>
-      <div className={spinning ? "spinning" : ""}>
+      <div className={spinning ? "chessboard spinning" : "chessboard"}>
         <Chessboard
           position={fen}
           boardStyle={boardStyle}
@@ -115,7 +116,9 @@ const GamePage = () => {
           }
         />
       </div>
-      <button onClick={handleLeaveGame}>Leave Game</button>
+      <button className="button" onClick={handleLeaveGame}>
+        Leave Game
+      </button>
     </div>
   );
 };

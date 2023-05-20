@@ -8,12 +8,43 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  transition: background-color 0.5s ease-out, color 0.5s ease-out;
 }
 
-.theme-toggler {
-  position: absolute;
-  top: 10px;
-  right: 10px;
+.game-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  color: inherit;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.game-pin {
+  font-size: 16px;
+  color: inherit;
+}
+
+.button {
+  margin: 20px 0;
+  padding: 10px 20px;
+  font-size: 1.2em;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #ffffff;
+}
+
+.button:hover {
+  transform: scale(1.05);
+}
+
+.chessboard {
+  transition: transform 1s;
 }
 
 .light {
@@ -24,10 +55,6 @@ body {
 .dark {
   background-color: #000000;
   color: #ffffff;
-}
-
-.game-pin {
-  margin-bottom: 20px;
 }
 
 @keyframes spin {

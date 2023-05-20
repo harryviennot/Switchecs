@@ -69,7 +69,7 @@ const SocketIo = (server) => {
         const result = game.chess.move(move);
         game.turn === "white" ? (game.turn = "black") : (game.turn = "white");
         if (result) {
-          if (game.chess.in_checkmate()) {
+          if (game.chess.isGameOver()) {
             io.to(room).emit(
               "game won",
               game.turn === "white" ? "black" : "white"
