@@ -3,14 +3,15 @@ import { useParams } from "react-router-dom";
 import Chessboard from "chessboardjsx";
 import Switch from "react-switch";
 import { ThemeContext } from "../contexts/ThemeContext";
-import { ChessGame } from "../utils/chessLogic";
+import { SocketContext } from "../contexts/SocketContext";
 import "../styles/GamePage.css";
 
 const GamePage = () => {
   const { theme, toggleTheme } = useContext(ThemeContext);
-  const [game] = useState(new ChessGame());
-  const [fen, setFen] = useState(game.getFen());
+  const [fen, setFen] = useState();
   const { gamePin } = useParams();
+  const { socket } = useContext(SocketContext);
+  const [ color, setColor ] = useState('white');
 
   const boardStyle = {
     borderRadius: "5px",
@@ -20,12 +21,8 @@ const GamePage = () => {
   const darkSquareStyle = { backgroundColor: "#2B2B2B" };
   const lightSquareStyle = { backgroundColor: "#F5F5DC" };
 
-  const handleMove = ({ sourceSquare, targetSquare }) => {
-    console.log(sourceSquare, targetSquare);
-    const move = game.move(sourceSquare, targetSquare);
-    if (move !== null) {
-      setFen(game.getFen());
-    }
+  const handleMove = (move) => {
+    socket.emit("move", { move, gamePin});
   };
 
   useEffect(() => {
@@ -33,13 +30,19 @@ const GamePage = () => {
   }, [theme]);
 
   useEffect(() => {
-    socket.on("full", (gamePin) => {
-      alert(`Game ${gamePin} is full`);
+    socket.on("update", fen => {
+      setFen(fen);
     });
-    socket.on("joined", (gamePin) => {
-      navigate(`/${gamePin}`);
+
+    socket.on("color", color => {
+      setColor(color);
     });
-  }, [socket, navigate]);
+  }, [socket]);
+
+  useEffect(() => {
+    socket.emit("getColor", gamePin);
+    socket.emit("getFen", gamePin)
+  }, []);
     
 
   return (
@@ -50,6 +53,7 @@ const GamePage = () => {
         boardStyle={boardStyle}
         darkSquareStyle={darkSquareStyle}
         lightSquareStyle={lightSquareStyle}
+        orientation={color}
         onDrop={(move) =>
           handleMove({
             sourceSquare: move.sourceSquare,
