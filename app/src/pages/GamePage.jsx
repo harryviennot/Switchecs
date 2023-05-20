@@ -1,12 +1,15 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Chessboard from "chessboardjsx";
 import Switch from "react-switch";
 import { ThemeContext } from "../contexts/ThemeContext";
+import { ChessGame } from "../utils/chessLogic";
 import "../styles/GamePage.css";
 
 const GamePage = () => {
   const { theme, toggleTheme } = useContext(ThemeContext);
+  const [game] = useState(new ChessGame());
+  const [fen, setFen] = useState(game.getFen());
   const { gamePin } = useParams();
 
   const boardStyle = {
@@ -17,6 +20,14 @@ const GamePage = () => {
   const darkSquareStyle = { backgroundColor: "#2B2B2B" };
   const lightSquareStyle = { backgroundColor: "#F5F5DC" };
 
+  const handleMove = ({ sourceSquare, targetSquare }) => {
+    const move = game.move(sourceSquare, targetSquare);
+    if (move !== null) {
+      // if the move was valid, update the board
+      setFen(game.getFen());
+    }
+  };
+
   useEffect(() => {
     document.body.className = theme;
   }, [theme]);
@@ -25,10 +36,16 @@ const GamePage = () => {
     <div className="game-page">
       <h1 className="game-pin">Game Pin: {gamePin}</h1>
       <Chessboard
-        position="start"
+        position={fen}
         boardStyle={boardStyle}
         darkSquareStyle={darkSquareStyle}
         lightSquareStyle={lightSquareStyle}
+        onDrop={(move) =>
+          handleMove({
+            sourceSquare: move.sourceSquare,
+            targetSquare: move.targetSquare,
+          })
+        }
       />
       <div className="theme-toggler">
         <label>
