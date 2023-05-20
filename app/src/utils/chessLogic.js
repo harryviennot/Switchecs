@@ -18,7 +18,7 @@ export class ChessGame {
       x2 = this.getLetterValue(to[0])
     const newfrom = [x, y]
     const newto = [x2, y2]
-    return this.Joker(newfrom, newto)
+    return this.Pawn(false, newfrom, newto)
   }
 
   getFen() {
@@ -106,4 +106,21 @@ export class ChessGame {
     }
     return true
   }
+
+  Pawn(isBlack, ori, next) {
+    const direction = isBlack? 1 : -1;
+    if (ori[0] === next[0]) {
+        if (ori[1] === next[1] + direction)
+            return true;
+        if (ori[1] === next[1] + direction * 2 && (ori[1] === 2 || ori[1] === 7))
+            return true;
+    }
+    if (ori[0] === next[0] + 1 || ori[0] === next[0] - 1) {
+        if (ori[1] === next[1] + direction) {
+            if (this.getFenValue(next[0], next[1]) != '-')
+                return true;
+        }
+    }
+    return false;
+}
 }
