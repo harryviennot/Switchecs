@@ -1,7 +1,7 @@
 export class ChessGame {
   constructor() {
     this.fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
-    this.turn = "white";
+    this.turn = "white"
     this.gameOver = false;
   }
 
@@ -23,9 +23,18 @@ export class ChessGame {
       var Matrix = this.createMatrix()
       Matrix[8 - newto[1]][newto[0] - 1] = Matrix[8 - newfrom[1]][newfrom[0] - 1]
       Matrix[8 - newfrom[1]][newfrom[0] - 1] = "-"
-      this.fen = this.MatToFen(Matrix)  
+      this.fen = this.MatToFen(Matrix)
+      this.ChangeTurn()
+      console.log("turn : " + this.turn.toString())
     }
     return verify
+  }
+
+  ChangeTurn() {
+    if (this.turn === "white")
+      this.turn = "black"
+    else
+      this.turn = "white"
   }
 
   Verification(ori, next) {
@@ -235,6 +244,27 @@ export class ChessGame {
     if (diffX + diffY === 3) {
       return true
     }
+    return false
+  }
+
+  KnightCheck(isBlack, KingSquare) {
+    const ennemy = isBlack? 'N' : 'n';
+    if (this.getFenValue(KingSquare[0] + 2, KingSquare[1] + 1) === ennemy)
+      return true
+    if (this.getFenValue(KingSquare[0] + 2, KingSquare[1] - 1) === ennemy)
+      return true
+    if (this.getFenValue(KingSquare[0] + 1, KingSquare[1] + 2) === ennemy)
+      return true
+    if (this.getFenValue(KingSquare[0] + 1, KingSquare[1] - 2) === ennemy)
+      return true
+    if (this.getFenValue(KingSquare[0] - 2, KingSquare[1] + 1) === ennemy)
+      return true
+    if (this.getFenValue(KingSquare[0] - 2, KingSquare[1] - 1) === ennemy)
+      return true
+    if (this.getFenValue(KingSquare[0] - 1, KingSquare[1] + 2) === ennemy)
+      return true
+    if (this.getFenValue(KingSquare[0] - 1, KingSquare[1] - 2) === ennemy)
+      return true
     return false
   }
   
