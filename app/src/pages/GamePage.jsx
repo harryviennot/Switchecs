@@ -23,6 +23,13 @@ const GamePage = () => {
   const handleMove = ({ sourceSquare, targetSquare }) => {
     console.log(sourceSquare, targetSquare);
     const move = game.move(sourceSquare, targetSquare);
+    console.log(move)
+    if (move)
+      console.log("True")
+    else if (!move)
+      console.log("False")
+    else
+      console.log("Gne")
     if (move !== null) {
       setFen(game.getFen());
     }
