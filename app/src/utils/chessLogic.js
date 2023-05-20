@@ -123,6 +123,35 @@ export class ChessGame {
     return false
   }
 
+  RookCheck(isBlack, KingSquare) {
+    const ennemy = isBlack? 'R' : 'r';
+    for (let i = KingSquare[0] + 1; i <= 8; i++) {
+        if (this.getFenValue(i, KingSquare[1]) === ennemy)
+            return true;
+        else if (this.getFenValue(i, KingSquare[1]) !== '-')
+            break;
+    }
+    for (let i = KingSquare[0] - 1; i > 0; i--) {
+        if (this.getFenValue(i, KingSquare[1]) === ennemy)
+        return true;
+        else if (this.getFenValue(i, KingSquare[1]) !== '-')
+        break;
+    }
+    for (let i = KingSquare[1] + 1; i <= 8; i++) {
+        if (this.getFenValue(KingSquare[0], i) === ennemy)
+        return true;
+        else if (this.getFenValue(KingSquare[0], i) !== '-')
+        break;
+    }
+    for (let i = KingSquare[1] - 1; i > 0; i--) {
+        if (this.getFenValue(KingSquare[0], i) === ennemy)
+        return true;
+        else if (this.getFenValue(KingSquare[0], i) !== '-')
+        break;
+    }
+    return false
+  }
+
   Joker(ori, next) {
     if (Math.abs(ori[0] - next[0]) !== Math.abs(ori[1] - next[1]))
       return false
