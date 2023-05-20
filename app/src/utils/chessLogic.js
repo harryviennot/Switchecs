@@ -18,7 +18,41 @@ export class ChessGame {
       x2 = this.getLetterValue(to[0])
     const newfrom = [x, y]
     const newto = [x2, y2]
-    return this.Pawn(false, newfrom, newto)
+    var verify = this.Tower(newfrom, newto)
+    if (verify) {
+      var Matrix = this.createMatrix()
+      console.log(Matrix)
+      Matrix[8 - newto[1]][newto[0] - 1] = Matrix[8 - newfrom[1]][newfrom[0] - 1]
+      Matrix[8 - newfrom[1]][newfrom[0] - 1] = "-"
+      console.log(Matrix)
+      this.fen = this.MatToFen(Matrix)  
+    }
+    return verify
+  }
+
+  MatToFen(matrix) {
+    var newfen = ""
+    var bonu = 0
+    for (let i = 0; i < matrix.length; i++) {
+      for (let j = 0; j < matrix.length; j++) {
+        if (matrix[i][j] !== "-") {
+          if (bonu !== 0) {
+            newfen += bonu.toString()
+            bonu = 0
+          }
+          newfen += matrix[i][j]
+        } else {
+          bonu += 1
+        }
+      }
+      if (bonu !== 0) {
+        newfen += bonu.toString()
+        bonu = 0
+      }
+      newfen += "/"
+    }
+    newfen = newfen.slice(0, -1)
+    return newfen
   }
 
   getFen() {
@@ -45,7 +79,7 @@ export class ChessGame {
       lej = 0
       for (var j = 0; j < 8; j ++) {
         if ("012345678".includes(fenmat[i][lej])) {
-          for (let index = parseInt(fenmat[i][lej]); index > 1; index--) {
+          for (let index = parseInt(fenmat[i][lej]); index > 0; index--) {
             matrix[i][j + index - 1] = "-"
           }
           j += parseInt(fenmat[i][lej]) - 1
@@ -108,7 +142,7 @@ export class ChessGame {
     return true
   }
 
-  Pawn(isBlack, ori, next) {
+  Pawn(ori, next, isBlack) {
     const direction = isBlack? 1 : -1;
     if (ori[0] === next[0]) {
         if (ori[1] === next[1] + direction && this.getFenValue(next[0], next[1]) === '-')
@@ -118,7 +152,7 @@ export class ChessGame {
     }
     if (ori[0] === next[0] + 1 || ori[0] === next[0] - 1) {
         if (ori[1] === next[1] + direction) {
-            if (this.getFenValue(next[0], next[1]) != '-')
+            if (this.getFenValue(next[0], next[1]) !== '-')
                 return true;
         }
     }
