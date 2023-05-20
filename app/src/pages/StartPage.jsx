@@ -41,7 +41,7 @@ const StartPage = () => {
 
   return (
     <div className="start-page">
-      <h1 className="title">Switchecs</h1>
+      <h1 className="title">Switchess</h1>
       <button className="button" onClick={handleJoinGame}>
         Join Game
       </button>

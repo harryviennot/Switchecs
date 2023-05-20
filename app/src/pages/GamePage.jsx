@@ -1,17 +1,18 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import Chessboard from "chessboardjsx";
-import Switch from "react-switch";
-import { ThemeContext } from "../contexts/ThemeContext";
 import { SocketContext } from "../contexts/SocketContext";
 import "../styles/GamePage.css";
 
 const GamePage = () => {
-  const { theme, toggleTheme } = useContext(ThemeContext);
   const [fen, setFen] = useState();
+  const [spinning, setSpinning] = useState(false);
+  const spinTimeout = useRef(null);
   const { gamePin } = useParams();
   const { socket } = useContext(SocketContext);
-  const [ color, setColor ] = useState('white');
+  const [turn, setTurn] = useState("white");
+  const [color, setColor] = useState("white");
+  const [result, setResult] = useState("");
 
   const boardStyle = {
     borderRadius: "5px",
@@ -22,60 +23,99 @@ const GamePage = () => {
   const lightSquareStyle = { backgroundColor: "#F5F5DC" };
 
   const handleMove = (move) => {
-    socket.emit("move", { move, gamePin});
+    if (turn !== color) return;
+    socket.emit("move", move, gamePin);
+  };
+
+  const handleLeaveGame = () => {
+    socket.emit("leave", gamePin);
   };
 
   useEffect(() => {
-    document.body.className = theme;
-  }, [theme]);
+    document.body.className = color === "white" ? "light" : "dark";
+  }, [color]);
 
   useEffect(() => {
-    socket.on("update", fen => {
+    const onUpdate = (data) => {
+      console.log("update", data);
+      const { fen, turn } = data;
       setFen(fen);
-    });
+      setTurn(turn);
+    };
 
-    socket.on("color", color => {
+    const onColor = (color) => {
       setColor(color);
-    });
+    };
+
+    const onSwitchTurns = () => {
+      console.log("switch turns");
+      setSpinning(true);
+
+      if (spinTimeout.current) {
+        clearTimeout(spinTimeout.current);
+      }
+
+      spinTimeout.current = setTimeout(() => {
+        setSpinning(false);
+        spinTimeout.current = null;
+      }, 1000);
+      setColor((prevColor) => (prevColor === "white" ? "black" : "white"));
+    };
+
+    const onGameWon = (winner) => {
+      setResult(winner === color ? "You won!" : "You lost!");
+    };
+
+    const userLeft = () => {
+      setResult("Opponent left");
+    };
+
+    socket.on("update", onUpdate);
+    socket.on("color", onColor);
+    socket.on("switch turns", onSwitchTurns);
+    socket.on("game won", onGameWon);
+    socket.on("user left", userLeft);
+
+    return () => {
+      socket.off("update", onUpdate);
+      socket.off("color", onColor);
+      socket.off("switch turns", onSwitchTurns);
+      if (spinTimeout.current) {
+        clearTimeout(spinTimeout.current);
+      }
+    };
   }, [socket]);
 
   useEffect(() => {
     socket.emit("getColor", gamePin);
-    socket.emit("getFen", gamePin)
-  }, []);
-    
+    socket.emit("getFen", gamePin);
+  }, [gamePin, socket]);
 
   return (
-    <div className="game-page">
-      <h1 className="game-pin">Game Pin: {gamePin}</h1>
-      <Chessboard
-        position={fen}
-        boardStyle={boardStyle}
-        darkSquareStyle={darkSquareStyle}
-        lightSquareStyle={lightSquareStyle}
-        orientation={color}
-        onDrop={(move) =>
-          handleMove({
-            sourceSquare: move.sourceSquare,
-            targetSquare: move.targetSquare,
-          })
-        }
-      />
-      <div className="theme-toggler">
-        <label>
-          <Switch
-            checked={theme === "dark"}
-            onChange={toggleTheme}
-            offColor="#000"
-            onColor="#fff"
-            offHandleColor="#fff"
-            onHandleColor="#000"
-            handleDiameter={20}
-            uncheckedIcon={false}
-            checkedIcon={false}
-          />
-        </label>
+    <div className={"game-page"}>
+      <div className="game-info">
+        <small className="game-pin">Game Pin: {gamePin}</small>
+        <h1>
+          {result ||
+            `Turn: ${turn === color ? "Your turn" : "Opponent's turn"}`}
+        </h1>
       </div>
+      <div className={spinning ? "spinning" : ""}>
+        <Chessboard
+          position={fen}
+          boardStyle={boardStyle}
+          darkSquareStyle={darkSquareStyle}
+          lightSquareStyle={lightSquareStyle}
+          orientation={color}
+          onDrop={(move) =>
+            handleMove({
+              from: move.sourceSquare,
+              to: move.targetSquare,
+            })
+          }
+        />
+      </div>
+      <button onClick={handleLeaveGame}>Leave Game</button>
     </div>
   );
 };

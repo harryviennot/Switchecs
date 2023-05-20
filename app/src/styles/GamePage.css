@@ -1,3 +1,7 @@
+body {
+  transition: background-color 0.5s ease-out, color 0.5s ease-out;
+}
+
 .game-page {
   height: 100vh;
   display: flex;
@@ -24,4 +28,17 @@
 
 .game-pin {
   margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(1080deg);
+  }
+}
+
+.spinning {
+  animation: spin 1s ease-in-out;
 }

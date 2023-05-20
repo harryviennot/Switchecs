@@ -26,7 +26,11 @@ const SocketIo = (server) => {
         return;
       }
       if (!games[room]) {
-        games[room] = new Chess();
+        games[room] = {
+          chess: new Chess(),
+          turn: "white",
+          switchTurnsIn: Math.floor(Math.random() * 3) + 3,
+        };
       }
       socket.join(room);
       socket.emit("joined", room);
@@ -44,17 +48,57 @@ const SocketIo = (server) => {
 
     socket.on("getFen", (room) => {
       const game = games[room];
-      socket.emit("update", game.fen());
+      if (!game) {
+        console.error(`Game not found for room: ${room}`);
+        return;
+      }
+      socket.emit("update", { fen: game.chess.fen(), turn: game.turn });
     });
 
     socket.on("move", (move, room) => {
       const game = games[room];
-      const result = game.move(move);
-      if (result) {
-        io.to(room).emit("update", game.fen());
-      } else {
+
+      console.log("FEN before move: ", game.chess.fen());
+      console.log("move", move, room);
+
+      if (!game) {
+        console.error(`Game not found for room: ${room}`);
+        return;
+      }
+      try {
+        const result = game.chess.move(move);
+        game.turn === "white" ? (game.turn = "black") : (game.turn = "white");
+        if (result) {
+          if (game.chess.in_checkmate()) {
+            io.to(room).emit(
+              "game won",
+              game.turn === "white" ? "black" : "white"
+            );
+          }
+          io.to(room).emit("update", {
+            fen: game.chess.fen(),
+            turn: game.turn,
+          });
+          game.switchTurnsIn--;
+        } else {
+          socket.emit("invalid move", move);
+        }
+        if (game.switchTurnsIn === 0) {
+          io.to(room).emit("switch turns");
+          console.log("switch turns");
+          game.switchTurnsIn = Math.floor(Math.random() * 6) + 2;
+        }
+      } catch (e) {
+        console.error(e);
         socket.emit("invalid move", move);
       }
+    });
+
+    socket.on("leave", (room) => {
+      console.log("leave", room);
+      socket.leave(room);
+      io.to(room).emit("userLeft", room);
+      logClientsInRoom(room);
     });
 
     socket.on("disconnect", () => {
