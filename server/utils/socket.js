@@ -33,11 +33,25 @@ const SocketIo = (server) => {
       logClientsInRoom(room);
     });
 
+    socket.on("getColor", (room) => {
+      const clients = io.sockets.adapter.rooms.get(room) || [];
+      let color = "white";
+      if (clients.size === 2) {
+        color = "black";
+      }
+      socket.emit("color", color);
+    });
+
+    socket.on("getFen", (room) => {
+      const game = games[room];
+      socket.emit("update", game.fen());
+    });
+
     socket.on("move", (move, room) => {
       const game = games[room];
       const result = game.move(move);
       if (result) {
-        io.to(room).emit("move", move);
+        io.to(room).emit("update", game.fen());
       } else {
         socket.emit("invalid move", move);
       }
