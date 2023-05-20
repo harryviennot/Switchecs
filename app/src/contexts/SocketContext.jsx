@@ -1,6 +1,6 @@
 import io from "socket.io-client";
 import { createContext, useState } from "react";
-const socket = io("http://localhost:3000", { transports: ["websocket"] });
+const socket = io("http://localhost:3001", { transports: ["websocket"] });
 export const SocketContext = createContext();
 
 export const SocketProvider = ({ children }) => {
