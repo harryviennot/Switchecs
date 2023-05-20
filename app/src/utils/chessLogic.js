@@ -59,12 +59,13 @@ export class ChessGame {
   }
 
   getFenValue(x, y) {
+    y = 9 - y;
     if (x > 8 || x <= 0)
       return false
     if (y > 8 || y <= 0)
       return false
     var matrix = this.createMatrix()
-    console.log("x = " + x + "\ny = " + y + "\nvalue = " + matrix[y - 1][x - 1])
+    console.log("x = " + x + "\ny = " + (9 - y) + "\nvalue = " + matrix[y - 1][x - 1])
     return matrix[y - 1][x - 1]
   }
   
@@ -110,9 +111,9 @@ export class ChessGame {
   Pawn(isBlack, ori, next) {
     const direction = isBlack? 1 : -1;
     if (ori[0] === next[0]) {
-        if (ori[1] === next[1] + direction)
+        if (ori[1] === next[1] + direction && this.getFenValue(next[0], next[1]) === '-')
             return true;
-        if (ori[1] === next[1] + direction * 2 && (ori[1] === 2 || ori[1] === 7))
+        if (ori[1] === next[1] + direction * 2 && (ori[1] === 2 || ori[1] === 7) && this.getFenValue(next[0], next[1]) === '-')
             return true;
     }
     if (ori[0] === next[0] + 1 || ori[0] === next[0] - 1) {
@@ -122,5 +123,14 @@ export class ChessGame {
         }
     }
     return false;
-}
+  }
+
+  PawnCheck(isBlack, KingSquare) {
+    const direction = isBlack? 1 : -1;
+    const ennemy = isBlack? 'P' : 'p';
+    if (this.getFenValue(KingSquare[0] + 1, KingSquare[1] - direction) === ennemy || this.getFenValue(KingSquare[0] - 1, KingSquare[1] - direction) === ennemy) {
+      return true;
+    }
+    return false; 
+  }
 }
