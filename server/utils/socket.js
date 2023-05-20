@@ -1,4 +1,7 @@
 const socketIo = require("socket.io");
+const Chess = require("chess.js").Chess;
+
+const games = {};
 
 const SocketIo = (server) => {
   const io = socketIo(server);
@@ -22,9 +25,22 @@ const SocketIo = (server) => {
         socket.emit("full", room);
         return;
       }
+      if (!games[room]) {
+        games[room] = new Chess();
+      }
       socket.join(room);
       socket.emit("joined", room);
       logClientsInRoom(room);
+    });
+
+    socket.on("move", (move, room) => {
+      const game = games[room];
+      const result = game.move(move);
+      if (result) {
+        io.to(room).emit("move", move);
+      } else {
+        socket.emit("invalid move", move);
+      }
     });
 
     socket.on("disconnect", () => {
