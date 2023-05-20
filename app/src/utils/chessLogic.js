@@ -168,3 +168,62 @@ export class ChessGame {
     return false; 
   }
 }
+
+getKnightMoves(ori, next) {
+  var possibleMoves = [];
+  var xOffsets = [-2, -1, 1, 2, 2, 1, -1, -2];
+  var yOffsets = [1, 2, 2, 1, -1, -2, -2, -1];
+
+  var currentX = position[0];
+  var currentY = position[1];
+
+  for (var i = 0; i < 8; i++) {
+    var newX = currentX + xOffsets[i];
+    var newY = currentY + yOffsets[i];
+  }
+  if (ori[0] === next[0] && ori[1] === next[1]) {
+    return false;
+  }else {
+    return true;
+  }
+  return possibleMoves;
+}
+
+Positionking(ori, next) {
+  if (position === 'up') {
+    next += 1;
+  } else if (position === 'down') {
+    next -= 1;
+  } else if (position === 'right') {
+    next += 1;
+  } else if (position === 'left') {
+    next -= 1;
+  }
+  const diffX = Math.abs(x1 - x2);
+  const diffY = Math.abs(y1 - y2);
+
+  if (diffX > 1 || diffY > 1) {
+    return false;
+  return true;
+}
+
+function getQueenMoves(ori, chessboard) {
+ var queenMoves = [];
+
+  for (let i = 0; i < 8; i++) {
+    for (let j = 0; j < 8; j++) {
+      if (Tower(ori, [i, j]) && chessboard[ori[0]][ori[1]] !== chessboard[i][j]) {
+        queenMoves.push([i, j]);
+      }
+    }
+  }
+  for (let i = 0; i < 8; i++) {
+    for (let j = 0; j < 8; j++) {
+      if (Joker(ori, [i, j]) && chessboard[ori[0]][ori[1]] !== chessboard[i][j]) {
+        queenMoves.push([i, j]);
+      }
+    }
+  }
+  return queenMoves;
+}
+}
