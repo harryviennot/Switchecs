@@ -18,7 +18,7 @@ export class ChessGame {
       x2 = this.getLetterValue(to[0])
     const newfrom = [x, y]
     const newto = [x2, y2]
-    var verify = this.Queen(newfrom, newto)
+    var verify = this.Verification(newfrom, newto)
     if (verify) {
       var Matrix = this.createMatrix()
       Matrix[8 - newto[1]][newto[0] - 1] = Matrix[8 - newfrom[1]][newfrom[0] - 1]
@@ -26,6 +26,38 @@ export class ChessGame {
       this.fen = this.MatToFen(Matrix)  
     }
     return verify
+  }
+
+  Verification(ori, next) {
+    const piece = this.getFenValue(ori[0], ori[1])
+    switch (piece) {
+      case "r":
+        return this.Tower(ori, next)
+      case "R":
+        return this.Tower(ori, next)
+      case "n":
+        return this.Knight(ori, next)
+      case "N":
+        return this.Knight(ori, next)
+      case "b":
+        return this.Joker(ori, next)
+      case "B":
+        return this.Joker(ori, next)
+      case "q":
+        return this.Queen(ori, next)
+      case "Q":
+        return this.Queen(ori, next)
+      case "k":
+        return this.King(ori, next)
+      case "K":
+        return this.King(ori, next)
+      case "p":
+        return this.Pawn(ori, next, true)
+      case "P":
+        return this.Pawn(ori, next, false)
+      default:
+        return false
+    }
   }
 
   MatToFen(matrix) {
