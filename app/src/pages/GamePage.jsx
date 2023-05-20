@@ -32,6 +32,16 @@ const GamePage = () => {
     document.body.className = theme;
   }, [theme]);
 
+  useEffect(() => {
+    socket.on("full", (gamePin) => {
+      alert(`Game ${gamePin} is full`);
+    });
+    socket.on("joined", (gamePin) => {
+      navigate(`/${gamePin}`);
+    });
+  }, [socket, navigate]);
+    
+
   return (
     <div className="game-page">
       <h1 className="game-pin">Game Pin: {gamePin}</h1>
