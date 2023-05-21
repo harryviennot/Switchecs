@@ -8,6 +8,13 @@ export class ChessGame {
   findPiece(position) {}
 
   move(from, to) {
+    // if (this.allcheck(this.turn === "black", false)[0] !== false) {
+    //   if ((this.checkmate(this.turn === "black", this.allcheck(this.turn === "black", false))) === false) {
+    //     this.gameOver = true
+    //     console.log("checkmate")
+    //     return false
+    //   }
+    // }
     var x = parseInt(from[0])
     const y = parseInt(from[1])
     if (isNaN(x))
@@ -412,99 +419,118 @@ export class ChessGame {
     return false
   }
 
-  getSafeSquares(board) {
-
-    const safeSquares = [];
-    for (let row = 0; row < board.length; row++) {
-      for (let col = 0; col < board[row].length; col++) {
-        const piece = board[row][col];
-        if (!piece || piece.color !== board.turn) {
-          if (getFenValue(board, row, col)) {
-            safeSquares.push({ x: col, y: row });
-          }
-        }
-      }
-    }
+  CanSacrificeToKing(opponents, IsWhite) {
+    if (opponents.length === 1)
+      return true
+    if (opponents.length !== 2)
+       return false
+    const matrix = this.createMatrix()
+    console.log(opponents[0])
+    const oppotype = this.getFenValue(opponents[0][0], opponents[0][1])
+    console.log("alive")
+    const kingpos = this.GetKingPosition(matrix, IsWhite)
+    for (let i in this.GetMiddleCases(opponents[0], kingpos, oppotype)) 
+    {
+      if (this.CanMoveToSpecified(matrix, i, IsWhite))
+      { 
+        return true 
+      } 
+    } 
+    return false 
+  } 
   
-    return safeSquares;
+  GetKingPosition(matrix, IsWhite) {
+    const bonusforkingsearch = IsWhite? -32 : 0
+    for (let x = 0; x < 8; x++) {
+      for (let y = 0; y < 8; y++) {
+        if (matrix[x][y] === "k" + bonusforkingsearch)
+        { 
+          return [x,y]
+        } 
+      } 
+    } 
+    return [0,0] 
+  }
+
+  GetMiddleCases(ori, next, type) {
+    if (type in "nNpPkK")
+      return []
+    var res = []
+    const difX = (next[0] - ori[0]) > 0 ? 1 : (next[0] - ori[0]) < 0 ? -1 : 0
+    const difY = (next[1] - ori[1]) > 0 ? 1 : (next[1] - ori[1]) < 0 ? -1 : 0
+    if (type in "bBrRqQ") {
+      for (let into = 1; into < this.max(Math.abs(difX), Math.abs(difY)); into++) {
+        res.push([ori[0] + (into * difX), ori[1] + (into * difY)]) 
+      } 
+    } 
+    return res
   }
   
-  EscapeCheckmate(ori, next) {
-      const king = findKing(ori);
-      const safeSquares = getSafeSquares(ori);
-    
-      for (let i = 0; i < safeSquares; i++) {
-        const safeSquare = safeSquares[i];
-        const move = { from: king.ori, to: safeSquare };
-    
-        const newPosition = makeMove(king, move, next);
-        if (!Check(newPosition)) {
-          return true;
+  CanMoveToSpecified(matrix, chesscase, IsWhite) {
+    const bonusforsacrifice = IsWhite ? -32 : 0
+    var IsDoable = false
+    for (let x = 0; x < 8; x++) {
+      for (let y = 0; y < 8; y++) {
+        const piece = matrix[x][y]
+        switch (piece) {
+          case "r" + bonusforsacrifice:
+            IsDoable = this.Tower([x, y], chesscase)
+          case "n" + bonusforsacrifice:
+            IsDoable = this.Knight([x, y], chesscase)
+          case "b" + bonusforsacrifice:
+            IsDoable = this.Joker([x, y], chesscase)
+          case "q" + bonusforsacrifice:
+            IsDoable = this.Queen([x, y], chesscase)
+          case "p" + bonusforsacrifice:
+            IsDoable = this.Pawn([x, y], chesscase, !IsWhite)
+          default:
+            IsDoable = false
         }
+        if (IsDoable) {return true}
       }
-      return false;
     }
-  
-    allcheck() {
-      RookCheck(isBlack, KingSquare);
-      PawnCheck(isBlack, KingSquare);
-      KnightCheck(isBlack, KingSquare);
-      QueenCheck(isBlack, KingSquare);
-      BishopCheck(isBlack, KingSquare);
-    }
-
-  checkmate(ori, next) {
-        if (allCheck(ori)) {
-          return true;
-        }
-        if (check >= 2) {
-          return EscapeCheckmate(ori, next);
-        }
-        if (EscapeCheckmate(ori, next)) {
-          return false;
-        } else {
-          const playerPieces = ori.filter(piece => piece.color === ori.turn);
-          for (let i = 0; i < playerPieces.length; i++) {
-            const possibleMoves = verification(ori, next);
-            for (let j = 0; j < possibleMoves.length; j++) {
-              const newPosition = makeMove(playerPieces[i], possibleMoves[j], next);
-              if (!Check(newPosition)) {
-                return false;
-              }
-            }
-          }
-          return true;
-        }
-      return false;
-      }
-      
-      isSafe(positionRoi, positionsPieces) {
-        const directions = [
-          { dx: -1, dy: -1 },
-          { dx: -1, dy: 0 },
-          { dx: -1, dy: 1 },
-          { dx: 0, dy: -1 },
-          { dx: 0, dy: 1 },
-          { dx: 1, dy: -1},
-          { dx: 1, dy: 0 },
-          { dx: 1, dy: 1 },
-        ];
-      
-        for (const direction of directions) {
-          const x = positionRoi.x + direction.dx;
-          const y = positionRoi.y + direction.dy;
-      
-          const occupiedSquare = positionsPieces.find(position => position.x === x && position.y === y);
-          if (occupiedSquare) {
-            continue;
-          }
-      
-          if (!isUnderAttack({ x, y }, positionsPieces)) {
-            return true;
-          }
-        }
-      
-        return false;
-      }
-      
   }
+
+  // EscapeCheckmate(isBlack) {
+  //   const KingSquare = this.findKing(isBlack);
+  //   const safeSquares = this.MatToFengetSafeSquares(KingSquare);
+  
+  //   for (let i = 0; i < safeSquares; i++) {
+  //     const safeSquare = safeSquares[i];
+  //     const move = { from: king.ori, to: safeSquare };
+  
+  //     const newPosition = makeMove(king, move, next);
+  //     if (!Check(newPosition)) {
+  //       return true;
+  //     }
+  //   }
+  //   return false;
+  // }
+
+  allcheck(isBlack, KingSquare) {
+    if (KingSquare === false)
+      KingSquare = this.findKing(isBlack)
+    let i = 0
+    var pieces = [false]
+    pieces[i] = this.RookCheck(isBlack, KingSquare) 
+    if (pieces[i] !== false)
+      i++
+    pieces[i] = this.PawnCheck(isBlack, KingSquare)
+    if (pieces[i] !== false)
+      i++
+    pieces[i] = this.KnightCheck(isBlack, KingSquare)
+    if (pieces[i] !== false)
+      i++
+    pieces[i] = this.QueenCheck(isBlack, KingSquare)
+    if (pieces[i] !== false)
+      i++
+    pieces[i] = this.BishopCheck(isBlack, KingSquare)
+    return pieces;
+  }
+  
+  checkmate(isBlack, CheckingPieces) {
+    if (this.CaptureCheck(isBlack, CheckingPieces) || this.CanSacrificeToKing(CheckingPieces, !(isBlack)))
+      return false
+    return true
+  }
+}
