@@ -29,10 +29,8 @@ export class ChessGame {
         Matrix[8 - newto[1]][newto[0] - 1] = 'q'
       Matrix[8 - newfrom[1]][newfrom[0] - 1] = "-"
       this.fen = this.MatToFen(Matrix)
-      if (this.allcheck(Matrix[8 - newto[1]][newto[0] - 1].charCodeAt(0) > 90)[0] !== false) {
+      if (this.allcheck(Matrix[8 - newto[1]][newto[0] - 1].charCodeAt(0) > 90, false)[0] !== false)
         this.fen = previousBoard
-        console.log(this.allcheck(Matrix[8 - newto[1]][newto[0] - 1].charCodeAt(0) > 90))
-      }
       else
         this.ChangeTurn()
       console.log("turn : " + this.turn.toString())
@@ -406,6 +404,14 @@ export class ChessGame {
     return KingSquare
   }
 
+  CaptureCheck(isBlack, CheckingPieces) {
+    if (CheckingPieces[1] !== false)
+      return false
+    else if (this.allcheck((isBlack === false), CheckingPieces[0])[0] !== false)
+      return true
+    return false
+  }
+
   // EscapeCheckmate(isBlack) {
   //   const KingSquare = this.findKing(isBlack);
   //   const safeSquares = this.MatToFengetSafeSquares(KingSquare);
@@ -422,8 +428,9 @@ export class ChessGame {
   //   return false;
   // }
 
-  allcheck(isBlack) {
-    const KingSquare = this.findKing(isBlack)
+  allcheck(isBlack, KingSquare) {
+    if (KingSquare === false)
+      KingSquare = this.findKing(isBlack)
     let i = 0
     var pieces = [false]
     pieces[i] = this.RookCheck(isBlack, KingSquare) 
