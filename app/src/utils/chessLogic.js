@@ -8,15 +8,6 @@ export class ChessGame {
   findPiece(position) {}
 
   move(from, to) {
-    if (this.allcheck(this.turn === "black", false)[0] !== false) {
-      if ((this.checkmate(this.turn === "black", this.allcheck(this.turn === "black", false)))) {
-        this.gameOver = true
-        console.log("checkmate")
-        return false;
-      }
-      console.log("not mate")
-    }
-    console.log("not in check")
     var x = parseInt(from[0])
     const y = parseInt(from[1])
     if (isNaN(x))
@@ -44,6 +35,19 @@ export class ChessGame {
         this.ChangeTurn()
       console.log("turn : " + this.turn.toString())
     }
+
+    // MOVED THIS SECTION AT THE END TO DISPLAY THE STATUS AFTER THE MOVE, AND NOT HAVING TO WAIT THE ENEMY TURN TO DISPLAY IT
+
+    if (this.allcheck(this.turn === "black", false)[0] !== false) {
+      if ((this.checkmate(this.turn === "black", this.allcheck(this.turn === "black", false)))) {
+        this.gameOver = true
+        console.log("CHECKMATE")
+        return false;
+      }
+      console.log("CHECK -- NO MATE")
+    }
+    else
+      console.log("NO CHECK")
     return verify
   }
 
@@ -422,29 +426,33 @@ export class ChessGame {
   }
 
   CanSacrificeToKing(opponents, IsWhite) {
+    var canMove = false
+    if (opponents.length === 0)
+      return true
+    if (opponents.at(-1) !== false)
+      opponents.push(false)
     if (opponents.length === 1)
       return true
     if (opponents.length !== 2)
        return false
     const matrix = this.createMatrix()
-    console.log(opponents[0])
     const oppotype = this.getFenValue(opponents[0][0], opponents[0][1])
     const kingpos = this.GetKingPosition(matrix, IsWhite)
-    for (let i in this.GetMiddleCases(opponents[0], kingpos, oppotype)) 
-    {
-      if (this.CanMoveToSpecified(matrix, i, IsWhite))
-      { 
-        return true 
-      } 
-    } 
-    return false 
+    this.GetMiddleCases(opponents[0], kingpos, oppotype).forEach(i => {
+      if (this.CanMoveToSpecified(i, IsWhite))
+      {
+        canMove = true
+      }
+    }
+    );
+    return canMove
   } 
   
   GetKingPosition(matrix, IsWhite) {
-    const bonusforkingsearch = IsWhite? -32 : 0
-    for (let x = 0; x < 8; x++) {
-      for (let y = 0; y < 8; y++) {
-        if (matrix[x][y] === "k" + bonusforkingsearch)
+    const bonusforkingsearch = IsWhite? "K" : "k"
+    for (let x = 1; x < 9; x++) {
+      for (let y = 1; y < 9; y++) {
+        if (this.getFenValue(x, y) === bonusforkingsearch)
         { 
           return [x,y]
         } 
@@ -461,41 +469,53 @@ export class ChessGame {
     const difY = (next[1] - ori[1]) > 0 ? 1 : (next[1] - ori[1]) < 0 ? -1 : 0
     if ("bBrRqQ".includes(type))
     {
-      for (let into = 1; into < Math.max(Math.abs(difX), Math.abs(difY)); into++) {
-        res.push([ori[0] + (into * difX), ori[1] + (into * difY)]) 
+      for (let into = 0; into < Math.max(Math.abs(next[0] - ori[0]), Math.abs(next[1] - ori[1])); into++) {
+        res.push([(ori[0] + (into * difX)), (ori[1] + (into * difY))]) 
       } 
-    } 
+    }
     return res
   }
   
-  CanMoveToSpecified(matrix, chesscase, IsWhite) {
-    const bonusforsacrifice = IsWhite ? -32 : 0
+  CanMoveToSpecified(chesscase, IsWhite) {
+    const bonusforsacrifice = IsWhite ? "RNBQP" : "rnbqp"
     var IsDoable = false
-    for (let x = 0; x < 8; x++) {
-      for (let y = 0; y < 8; y++) {
-        const piece = matrix[x][y]
+    for (let x = 1; x < 9; x++) {
+      for (let y = 1; y < 9; y++) {
+        const piece = this.getFenValue(x, y)
         switch (piece) {
-          case "r" + bonusforsacrifice: 
-            {IsDoable = this.Tower([x, y], chesscase)
-                      break;}
-          case "n" + bonusforsacrifice: 
-            {IsDoable = this.Knight([x, y], chesscase)
-                      break;}
-          case "b" + bonusforsacrifice:
-            {IsDoable = this.Joker([x, y], chesscase)
-                      break;}
-          case "q" + bonusforsacrifice:
-            {IsDoable = this.Queen([x, y], chesscase)
-                      break;}
-          case "p" + bonusforsacrifice:
-            {IsDoable = this.Pawn([x, y], chesscase, !IsWhite)
-                      break;} 
+          case bonusforsacrifice[0]: 
+          {
+            IsDoable = this.Tower([x, y], chesscase)
+            break;
+          }
+          case bonusforsacrifice[1]: 
+          {
+            IsDoable = this.Knight([x, y], chesscase)
+            break;
+          }
+          case bonusforsacrifice[2]:
+          {
+            IsDoable = this.Joker([x, y], chesscase)
+            break;
+          }
+          case bonusforsacrifice[3]:
+          {
+            IsDoable = this.Queen([x, y], chesscase)
+            break;
+          }
+          case bonusforsacrifice[4]:
+          {
+            IsDoable = this.Pawn([x, y], chesscase, !IsWhite)
+            break;
+          } 
           default:
             IsDoable = false
         }
+
         if (IsDoable) {return true}
       } 
-    } 
+    }
+    return false 
   }
 
   moveKing(isBlack, kingSquare) {
@@ -534,8 +554,6 @@ export class ChessGame {
   }
   
   checkmate(isBlack, CheckingPieces) {
-    console.log(this.CanSacrificeToKing(CheckingPieces, !(isBlack)))
-    console.log((!isBlack)? "White" : "Black")
     if (this.CaptureCheck(isBlack, CheckingPieces) || this.CanSacrificeToKing(CheckingPieces, !(isBlack)) || this.moveKing(isBlack, this.findKing(isBlack)))
       return false
     return true
