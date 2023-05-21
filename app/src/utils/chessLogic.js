@@ -412,62 +412,99 @@ export class ChessGame {
     return false
   }
 
-  // EscapeCheckmate(isBlack) {
-  //   const KingSquare = this.findKing(isBlack);
-  //   const safeSquares = this.MatToFengetSafeSquares(KingSquare);
-  
-  //   for (let i = 0; i < safeSquares; i++) {
-  //     const safeSquare = safeSquares[i];
-  //     const move = { from: king.ori, to: safeSquare };
-  
-  //     const newPosition = makeMove(king, move, next);
-  //     if (!Check(newPosition)) {
-  //       return true;
-  //     }
-  //   }
-  //   return false;
-  // }
+  getSafeSquares(board) {
 
-  allcheck(isBlack, KingSquare) {
-    if (KingSquare === false)
-      KingSquare = this.findKing(isBlack)
-    let i = 0
-    var pieces = [false]
-    pieces[i] = this.RookCheck(isBlack, KingSquare) 
-    if (pieces[i] !== false)
-      i++
-    pieces[i] = this.PawnCheck(isBlack, KingSquare)
-    if (pieces[i] !== false)
-      i++
-    pieces[i] = this.KnightCheck(isBlack, KingSquare)
-    if (pieces[i] !== false)
-      i++
-    pieces[i] = this.QueenCheck(isBlack, KingSquare)
-    if (pieces[i] !== false)
-      i++
-    pieces[i] = this.BishopCheck(isBlack, KingSquare)
-    return pieces;
+    const safeSquares = [];
+    for (let row = 0; row < board.length; row++) {
+      for (let col = 0; col < board[row].length; col++) {
+        const piece = board[row][col];
+        if (!piece || piece.color !== board.turn) {
+          if (getFenValue(board, row, col)) {
+            safeSquares.push({ x: col, y: row });
+          }
+        }
+      }
+    }
+  
+    return safeSquares;
   }
   
-  // checkmate(ori, next) {
-  //     if (allCheck(ori)) {
-  //       return true;
-  //     }
-  //     if (EscapeCheckmate(ori, next)) {
-  //       return false;
-  //     } else {
-  //       const playerPieces = ori.filter(piece => piece.color === ori.turn);
-  //       for (let i = 0; i < playerPieces.length; i++) {
-  //         const possibleMoves = getValidMoves(playerPieces[i], next);
-  //         for (let j = 0; j < possibleMoves.length; j++) {
-  //           const newPosition = makeMove(playerPieces[i], possibleMoves[j], next);
-  //           if (!isCheck(newPosition)) {
-  //             return false;
-  //           }
-  //         }
-  //       }
-  //       return true;
-  //     }
-  //   return false;
-  //}
-}
+  EscapeCheckmate(ori, next) {
+      const king = findKing(ori);
+      const safeSquares = getSafeSquares(ori);
+    
+      for (let i = 0; i < safeSquares; i++) {
+        const safeSquare = safeSquares[i];
+        const move = { from: king.ori, to: safeSquare };
+    
+        const newPosition = makeMove(king, move, next);
+        if (!Check(newPosition)) {
+          return true;
+        }
+      }
+      return false;
+    }
+  
+    allcheck() {
+      RookCheck(isBlack, KingSquare);
+      PawnCheck(isBlack, KingSquare);
+      KnightCheck(isBlack, KingSquare);
+      QueenCheck(isBlack, KingSquare);
+      BishopCheck(isBlack, KingSquare);
+    }
+
+  checkmate(ori, next) {
+        if (allCheck(ori)) {
+          return true;
+        }
+        if (check >= 2) {
+          return EscapeCheckmate(ori, next);
+        }
+        if (EscapeCheckmate(ori, next)) {
+          return false;
+        } else {
+          const playerPieces = ori.filter(piece => piece.color === ori.turn);
+          for (let i = 0; i < playerPieces.length; i++) {
+            const possibleMoves = verification(ori, next);
+            for (let j = 0; j < possibleMoves.length; j++) {
+              const newPosition = makeMove(playerPieces[i], possibleMoves[j], next);
+              if (!Check(newPosition)) {
+                return false;
+              }
+            }
+          }
+          return true;
+        }
+      return false;
+      }
+      
+      isSafe(positionRoi, positionsPieces) {
+        const directions = [
+          { dx: -1, dy: -1 },
+          { dx: -1, dy: 0 },
+          { dx: -1, dy: 1 },
+          { dx: 0, dy: -1 },
+          { dx: 0, dy: 1 },
+          { dx: 1, dy: -1},
+          { dx: 1, dy: 0 },
+          { dx: 1, dy: 1 },
+        ];
+      
+        for (const direction of directions) {
+          const x = positionRoi.x + direction.dx;
+          const y = positionRoi.y + direction.dy;
+      
+          const occupiedSquare = positionsPieces.find(position => position.x === x && position.y === y);
+          if (occupiedSquare) {
+            continue;
+          }
+      
+          if (!isUnderAttack({ x, y }, positionsPieces)) {
+            return true;
+          }
+        }
+      
+        return false;
+      }
+      
+  }
