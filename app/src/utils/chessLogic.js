@@ -29,8 +29,10 @@ export class ChessGame {
         Matrix[8 - newto[1]][newto[0] - 1] = 'q'
       Matrix[8 - newfrom[1]][newfrom[0] - 1] = "-"
       this.fen = this.MatToFen(Matrix)
-      if (this.allcheck(Matrix[8 - newto[1]][newto[0] - 1].charCodeAt(0) > 90))
+      if (this.allcheck(Matrix[8 - newto[1]][newto[0] - 1].charCodeAt(0) > 90)[0] !== false) {
         this.fen = previousBoard
+        console.log(this.allcheck(Matrix[8 - newto[1]][newto[0] - 1].charCodeAt(0) > 90))
+      }
       else
         this.ChangeTurn()
       console.log("turn : " + this.turn.toString())
@@ -249,27 +251,27 @@ export class ChessGame {
     const king = isBlack? 'k' : 'K';
     for (let i = KingSquare[0] + 1; i <= 8; i++) {
         if (this.getFenValue(i, KingSquare[1]) === ennemy)
-            return true;
+            return [i, KingSquare[1]];
         else if (this.getFenValue(i, KingSquare[1]) !== '-' && this.getFenValue(i, KingSquare[1]) !== king)
             break;
     }
     for (let i = KingSquare[0] - 1; i > 0; i--) {
         if (this.getFenValue(i, KingSquare[1]) === ennemy)
-        return true;
+          return [i, KingSquare[1]];
         else if (this.getFenValue(i, KingSquare[1]) !== '-' && this.getFenValue(i, KingSquare[1]) !== king)
-        break;
+          break;
     }
     for (let i = KingSquare[1] + 1; i <= 8; i++) {
         if (this.getFenValue(KingSquare[0], i) === ennemy)
-        return true;
+          return [KingSquare[0], i];
         else if (this.getFenValue(KingSquare[0], i) !== '-' && this.getFenValue(KingSquare[0], i) !== king)
-        break;
+          break;
     }
     for (let i = KingSquare[1] - 1; i > 0; i--) {
         if (this.getFenValue(KingSquare[0], i) === ennemy)
-        return true;
+          return [KingSquare[0], i];
         else if (this.getFenValue(KingSquare[0], i) !== '-' && this.getFenValue(KingSquare[0], i) !== king)
-        break;
+          break;
     }
     return false
   }
@@ -279,25 +281,25 @@ export class ChessGame {
     const king = isBlack? 'k' : 'K';
     for (let i = 1; KingSquare[0] + i <= 8 && KingSquare[1] + i <= 8; i++) {
         if (this.getFenValue(KingSquare[0] + i, KingSquare[1] + i) === ennemy)
-            return true;
+            return [KingSquare[0] + i, KingSquare[1] + i];
         else if (this.getFenValue(KingSquare[0] + i, KingSquare[1] + i) !== '-' && this.getFenValue(KingSquare[0] + i, KingSquare[1] + i) !==  king)
             break;
     }
     for (let i = -1; KingSquare[0] + i > 0 && KingSquare[1] + i > 0; i--) {
         if (this.getFenValue(KingSquare[0] + i, KingSquare[1] + i) === ennemy)
-            return true;
+            return [KingSquare[0] + i, KingSquare[1] + i];
         else if (this.getFenValue(KingSquare[0] + i, KingSquare[1] + i) !== '-' && this.getFenValue(KingSquare[0] + i, KingSquare[1] + i) !== king)
             break;
     }
     for (let i = 1; KingSquare[0] + i <= 8 && KingSquare[1] - i > 0; i++) {
         if (this.getFenValue(KingSquare[0] + i, KingSquare[1] - i) === ennemy)
-            return true;
+            return [KingSquare[0] + i, KingSquare[1] - i];
         else if (this.getFenValue(KingSquare[0] + i, KingSquare[1] - i) !== '-' && this.getFenValue(KingSquare[0] + i, KingSquare[1] - i) !== king)
             break;
     }
     for (let i = 1; KingSquare[0] - i > 0 && KingSquare[1] + i <= 8; i++) {
         if (this.getFenValue(KingSquare[0] - i, KingSquare[1] + i) === ennemy)
-            return true;
+            return [KingSquare[0] - i, KingSquare[1] + i];
         else if (this.getFenValue(KingSquare[0] - i, KingSquare[1] + i) !== '-' && this.getFenValue(KingSquare[0] - i, KingSquare[1] + i) !== king)
             break;
     }
@@ -307,8 +309,11 @@ export class ChessGame {
   PawnCheck(isBlack, KingSquare) {
     const direction = isBlack? 1 : -1;
     const ennemy = isBlack? 'P' : 'p';
-    if (this.getFenValue(KingSquare[0] + 1, KingSquare[1] - direction) === ennemy || this.getFenValue(KingSquare[0] - 1, KingSquare[1] - direction) === ennemy) {
-      return true;
+    if (this.getFenValue(KingSquare[0] + 1, KingSquare[1] - direction) === ennemy) {
+      return [KingSquare[0] + 1, KingSquare[1] - direction];
+    }
+    if (this.getFenValue(KingSquare[0] - 1, KingSquare[1] - direction) === ennemy) {
+      return [KingSquare[0] - 1, KingSquare[1] - direction];
     }
     return false; 
   }
@@ -316,21 +321,21 @@ export class ChessGame {
   KnightCheck(isBlack, KingSquare) {
     const ennemy = isBlack? 'N' : 'n';
     if (this.getFenValue(KingSquare[0] + 2, KingSquare[1] + 1) === ennemy)
-      return true
+      return [KingSquare[0] + 2, KingSquare[1] + 1]
     if (this.getFenValue(KingSquare[0] + 2, KingSquare[1] - 1) === ennemy)
-      return true
+      return [KingSquare[0] + 2, KingSquare[1] - 1]
     if (this.getFenValue(KingSquare[0] + 1, KingSquare[1] + 2) === ennemy)
-      return true
+      return [KingSquare[0] + 1, KingSquare[1] + 2]
     if (this.getFenValue(KingSquare[0] + 1, KingSquare[1] - 2) === ennemy)
-      return true
+      return [KingSquare[0] + 1, KingSquare[1] - 2]
     if (this.getFenValue(KingSquare[0] - 2, KingSquare[1] + 1) === ennemy)
-      return true
+      return [KingSquare[0] - 2, KingSquare[1] + 1]
     if (this.getFenValue(KingSquare[0] - 2, KingSquare[1] - 1) === ennemy)
-      return true
+      return [KingSquare[0] - 2, KingSquare[1] - 1]
     if (this.getFenValue(KingSquare[0] - 1, KingSquare[1] + 2) === ennemy)
-      return true
+      return [KingSquare[0] - 1, KingSquare[1] + 2]
     if (this.getFenValue(KingSquare[0] - 1, KingSquare[1] - 2) === ennemy)
-      return true
+      return [KingSquare[0] - 1, KingSquare[1] - 2]
     return false
   }
 
@@ -338,59 +343,72 @@ export class ChessGame {
     const ennemy = isBlack? 'Q' : 'q';
     const king = isBlack? 'k' : 'K';
     for (let i = 1; KingSquare[0] + i <= 8 && KingSquare[1] + i <= 8; i++) {
-        if (this.getFenValue(KingSquare[0] + i, KingSquare[1] + i) === ennemy)
-            return true;
-        else if (this.getFenValue(KingSquare[0] + i, KingSquare[1] + i) !== '-' && this.getFenValue(KingSquare[0] + i, KingSquare[1] + i) !==  king)
-            break;
-          }
-          for (let i = -1; KingSquare[0] + i > 0 && KingSquare[1] + i > 0; i--) {
-        if (this.getFenValue(KingSquare[0] + i, KingSquare[1] + i) === ennemy)
-            return true;
-        else if (this.getFenValue(KingSquare[0] + i, KingSquare[1] + i) !== '-' && this.getFenValue(KingSquare[0] + i, KingSquare[1] + i) !== king)
-            break;
+      if (this.getFenValue(KingSquare[0] + i, KingSquare[1] + i) === ennemy)
+        return [KingSquare[0] + i, KingSquare[1] + i];
+      else if (this.getFenValue(KingSquare[0] + i, KingSquare[1] + i) !== '-' && this.getFenValue(KingSquare[0] + i, KingSquare[1] + i) !==  king)
+        break;
+    }
+    for (let i = -1; KingSquare[0] + i > 0 && KingSquare[1] + i > 0; i--) {
+      if (this.getFenValue(KingSquare[0] + i, KingSquare[1] + i) === ennemy)
+        return [KingSquare[0] + i, KingSquare[1] + i];
+      else if (this.getFenValue(KingSquare[0] + i, KingSquare[1] + i) !== '-' && this.getFenValue(KingSquare[0] + i, KingSquare[1] + i) !== king)
+        break;
     }
     for (let i = 1; KingSquare[0] + i <= 8 && KingSquare[1] - i > 0; i++) {
-        if (this.getFenValue(KingSquare[0] + i, KingSquare[1] - i) === ennemy)
-            return true;
-        else if (this.getFenValue(KingSquare[0] + i, KingSquare[1] - i) !== '-' && this.getFenValue(KingSquare[0] + i, KingSquare[1] - i) !== king)
-            break;
+      if (this.getFenValue(KingSquare[0] + i, KingSquare[1] - i) === ennemy)
+        return [KingSquare[0] + i, KingSquare[1] - i];
+      else if (this.getFenValue(KingSquare[0] + i, KingSquare[1] - i) !== '-' && this.getFenValue(KingSquare[0] + i, KingSquare[1] - i) !== king)
+        break;
     }
     for (let i = 1; KingSquare[0] - i > 0 && KingSquare[1] + i <= 8; i++) {
-        if (this.getFenValue(KingSquare[0] - i, KingSquare[1] + i) === ennemy)
-            return true;
-        else if (this.getFenValue(KingSquare[0] - i, KingSquare[1] + i) !== '-' && this.getFenValue(KingSquare[0] - i, KingSquare[1] + i) !== king)
-            break;
+      if (this.getFenValue(KingSquare[0] - i, KingSquare[1] + i) === ennemy)
+        return [KingSquare[0] - i, KingSquare[1] + i];
+      else if (this.getFenValue(KingSquare[0] - i, KingSquare[1] + i) !== '-' && this.getFenValue(KingSquare[0] - i, KingSquare[1] + i) !== king)
+        break;
     }
     for (let i = KingSquare[0] + 1; i <= 8; i++) {
-        if (this.getFenValue(i, KingSquare[1]) === ennemy)
-            return true;
-        else if (this.getFenValue(i, KingSquare[1]) !== '-' && this.getFenValue(i, KingSquare[1]) !== king)
-            break;
+      if (this.getFenValue(i, KingSquare[1]) === ennemy)
+        return [i, KingSquare[1]];
+      else if (this.getFenValue(i, KingSquare[1]) !== '-' && this.getFenValue(i, KingSquare[1]) !== king)
+        break;
     }
     for (let i = KingSquare[0] - 1; i > 0; i--) {
-        if (this.getFenValue(i, KingSquare[1]) === ennemy)
-        return true;
-        else if (this.getFenValue(i, KingSquare[1]) !== '-' && this.getFenValue(i, KingSquare[1]) !== king)
+      if (this.getFenValue(i, KingSquare[1]) === ennemy)
+        return [i, KingSquare[1]];
+      else if (this.getFenValue(i, KingSquare[1]) !== '-' && this.getFenValue(i, KingSquare[1]) !== king)
         break;
     }
     for (let i = KingSquare[1] + 1; i <= 8; i++) {
-        if (this.getFenValue(KingSquare[0], i) === ennemy)
-        return true;
-        else if (this.getFenValue(KingSquare[0], i) !== '-' && this.getFenValue(KingSquare[0], i) !== king)
+      if (this.getFenValue(KingSquare[0], i) === ennemy)
+        return [KingSquare[0], i];
+      else if (this.getFenValue(KingSquare[0], i) !== '-' && this.getFenValue(KingSquare[0], i) !== king)
         break;
     }
     for (let i = KingSquare[1] - 1; i > 0; i--) {
-        if (this.getFenValue(KingSquare[0], i) === ennemy)
-        return true;
-        else if (this.getFenValue(KingSquare[0], i) !== '-' && this.getFenValue(KingSquare[0], i) !== king)
+      if (this.getFenValue(KingSquare[0], i) === ennemy)
+        return [KingSquare[0], i];
+      else if (this.getFenValue(KingSquare[0], i) !== '-' && this.getFenValue(KingSquare[0], i) !== king)
         break;
     }
     return false
   }
+  
+  findKing(isBlack) {
+    const king = isBlack? 'k' : 'K'
+    for (let x = 1; x <= 8; x++) {
+      for (let y = 1; y <= 8; y++) {
+        if (this.getFenValue(x, y) === king) {
+          var KingSquare = [x, y]
+          break
+        }
+      }
+    }
+    return KingSquare
+  }
 
-  // EscapeCheckmate(ori, next) {
-  //   const king = findKing(ori);
-  //   const safeSquares = getSafeSquares(ori);
+  // EscapeCheckmate(isBlack) {
+  //   const KingSquare = this.findKing(isBlack);
+  //   const safeSquares = this.MatToFengetSafeSquares(KingSquare);
   
   //   for (let i = 0; i < safeSquares; i++) {
   //     const safeSquare = safeSquares[i];
@@ -403,23 +421,25 @@ export class ChessGame {
   //   }
   //   return false;
   // }
-  
+
   allcheck(isBlack) {
-    const king = isBlack? 'k' : 'K'
-    for (let x = 1; x <= 8; x++) {
-      for (let y = 1; y <= 8; y++) {
-        if (this.getFenValue(x, y) === king) {
-          var KingSquare = [x, y]
-          break
-        }
-      }
-    }
-    if (this.RookCheck(isBlack, KingSquare) ||
-        this.PawnCheck(isBlack, KingSquare) ||
-        this.KnightCheck(isBlack, KingSquare) ||
-        this.QueenCheck(isBlack, KingSquare) ||
-        this.BishopCheck(isBlack, KingSquare))
-        return true;
+    const KingSquare = this.findKing(isBlack)
+    let i = 0
+    var pieces = [false]
+    pieces[i] = this.RookCheck(isBlack, KingSquare) 
+    if (pieces[i] !== false)
+      i++
+    pieces[i] = this.PawnCheck(isBlack, KingSquare)
+    if (pieces[i] !== false)
+      i++
+    pieces[i] = this.KnightCheck(isBlack, KingSquare)
+    if (pieces[i] !== false)
+      i++
+    pieces[i] = this.QueenCheck(isBlack, KingSquare)
+    if (pieces[i] !== false)
+      i++
+    pieces[i] = this.BishopCheck(isBlack, KingSquare)
+    return pieces;
   }
   
   // checkmate(ori, next) {
