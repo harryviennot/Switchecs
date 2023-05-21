@@ -6,8 +6,6 @@ export class ChessGame {
     this.gameStatus = "";
   }
 
-  findPiece(position) {}
-
   isGameOver() {
     return this.gameOver;
   }
