@@ -153,7 +153,7 @@ export class ChessGame {
     var matrix = this.createMatrix()
     return matrix[y - 1][x - 1]
   }
-  
+
   Tower(ori, next) {
     var bonus = 1
     if (ori[0] === next[0]) {
@@ -392,35 +392,6 @@ export class ChessGame {
     }
     return false
   }
-  
-  findKing(isBlack) {
-    const king = isBlack? 'k' : 'K'
-    for (let x = 1; x <= 8; x++) {
-      for (let y = 1; y <= 8; y++) {
-        if (this.getFenValue(x, y) === king) {
-          var KingSquare = [x, y]
-          break
-        }
-      }
-    }
-    return KingSquare
-  }
-
-  // EscapeCheckmate(isBlack) {
-  //   const KingSquare = this.findKing(isBlack);
-  //   const safeSquares = this.MatToFengetSafeSquares(KingSquare);
-  
-  //   for (let i = 0; i < safeSquares; i++) {
-  //     const safeSquare = safeSquares[i];
-  //     const move = { from: king.ori, to: safeSquare };
-  
-  //     const newPosition = makeMove(king, move, next);
-  //     if (!Check(newPosition)) {
-  //       return true;
-  //     }
-  //   }
-  //   return false;
-  // }
 
   allcheck(isBlack) {
     const KingSquare = this.findKing(isBlack)
@@ -441,26 +412,102 @@ export class ChessGame {
     pieces[i] = this.BishopCheck(isBlack, KingSquare)
     return pieces;
   }
+
+  getSafeSquares(board) {
+
+    const safeSquares = [];
+    for (let row = 0; row < board.length; row++) {
+      for (let col = 0; col < board[row].length; col++) {
+        const piece = board[row][col];
+        if (!piece || piece.color !== board.turn) {
+          if (getFenValue(board, row, col)) {
+            safeSquares.push({ x: col, y: row });
+          }
+        }
+      }
+    }
   
-  // checkmate(ori, next) {
-  //     if (allCheck(ori)) {
-  //       return true;
-  //     }
-  //     if (EscapeCheckmate(ori, next)) {
-  //       return false;
-  //     } else {
-  //       const playerPieces = ori.filter(piece => piece.color === ori.turn);
-  //       for (let i = 0; i < playerPieces.length; i++) {
-  //         const possibleMoves = getValidMoves(playerPieces[i], next);
-  //         for (let j = 0; j < possibleMoves.length; j++) {
-  //           const newPosition = makeMove(playerPieces[i], possibleMoves[j], next);
-  //           if (!isCheck(newPosition)) {
-  //             return false;
-  //           }
-  //         }
-  //       }
-  //       return true;
-  //     }
-  //   return false;
-  //}
-}
+    return safeSquares;
+  }
+  
+  findKing(isBlack) {
+    const king = isBlack? 'k' : 'K'
+    for (let x = 1; x <= 8; x++) {
+      for (let y = 1; y <= 8; y++) {
+        if (this.getFenValue(x, y) === king) {
+          var KingSquare = [x, y]
+          break
+        }
+      }
+    }
+    return KingSquare
+  }
+  
+  EscapeCheckmate(ori, next) {
+    const king = findKing(ori);
+    const safeSquares = getSafeSquares(ori);
+    for (let i = 0; i < safeSquares; i++) {
+      const safeSquare = safeSquares[i];
+      const move = { from: king.ori, to: safeSquare };
+      const newPosition = makeMove(king, move, next);
+      if (!Check(newPosition)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  allcheck(isBlack) {
+    const king = isBlack? 'k' : 'K'
+    for (let x = 1; x <= 8; x++) {
+      for (let y = 1; y <= 8; y++) {
+        if (this.getFenValue(x, y) === king) {
+          var KingSquare = [x, y]
+          break
+        }
+      }
+    }
+    if (this.RookCheck(isBlack, KingSquare) ||
+        this.PawnCheck(isBlack, KingSquare) ||
+        this.KnightCheck(isBlack, KingSquare) ||
+        this.QueenCheck(isBlack, KingSquare) ||
+        this.BishopCheck(isBlack, KingSquare))
+        return true
+  }
+  
+    makeMove(piece, move, board) {
+      const newBoard = JSON.parse(JSON.stringify(board));
+      const { startX, startY } = move.from;
+      const { endX, endY } = move.to;
+      newBoard[endY][endX] = piece;
+      newBoard[startY][startX] = null;
+      piece.x = endX;
+      piece.y = endY;
+      return newBoard;
+    }
+  
+  checkmate(ori, next) {
+        if (allCheck(ori)) {
+          return true;
+        }
+        if (check >= 2) {
+          return EscapeCheckmate(ori, next);
+        }
+        if (EscapeCheckmate(ori, next)) {
+          return false;
+        } else {
+          const playerPieces = ori.filter(piece => piece.color === ori.turn);
+          for (let i = 0; i < playerPieces.length; i++) {
+            const possibleMoves = verification(ori, next);
+            for (let j = 0; j < possibleMoves.length; j++) {
+              const newPosition = makeMove(playerPieces[i], possibleMoves[j], next);
+              if (!Check(newPosition)) {
+                return false;
+              }
+            }
+          }
+          return true;
+        }
+      return false;
+      }
+  }
