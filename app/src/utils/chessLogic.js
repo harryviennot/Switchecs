@@ -3,6 +3,7 @@ export class ChessGame {
     this.fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
     this.turn = "white";
     this.gameOver = false;
+    this.gameStatus = "";
   }
 
   findPiece(position) {}
@@ -13,6 +14,10 @@ export class ChessGame {
 
   fen() {
     return this.fen;
+  }
+
+  gameStatus() {
+    return this.gameStatus;
   }
 
   move(from, to) {
@@ -63,11 +68,11 @@ export class ChessGame {
         )
       ) {
         this.gameOver = true;
-        console.log("CHECKMATE");
+        this.gameStatus = "CHECKMATE";
         return false;
       }
-      console.log("CHECK -- NO MATE");
-    } else console.log("NO CHECK");
+      this.gameStatus = "CHECK";
+    } else this.gameStatus = "";
     return verify;
   }
 
