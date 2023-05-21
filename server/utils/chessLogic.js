@@ -1,4 +1,4 @@
-export class ChessGame {
+class ChessGame {
   constructor() {
     this.fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
     this.turn = "white";
@@ -53,7 +53,6 @@ export class ChessGame {
       )
         this.fen = previousBoard;
       else this.ChangeTurn();
-      console.log("turn : " + this.turn.toString());
     }
 
     // MOVED THIS SECTION AT THE END TO DISPLAY THE STATUS AFTER THE MOVE, AND NOT HAVING TO WAIT THE ENEMY TURN TO DISPLAY IT
@@ -628,3 +627,5 @@ export class ChessGame {
     return true;
   }
 }
+
+module.exports = ChessGame;

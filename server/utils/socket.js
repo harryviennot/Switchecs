@@ -1,5 +1,5 @@
 const socketIo = require("socket.io");
-const Chess = require("chess.js").Chess;
+const ChessGame = require("./chessLogic");
 
 const games = {};
 
@@ -27,9 +27,9 @@ const SocketIo = (server) => {
       }
       if (!games[room]) {
         games[room] = {
-          chess: new Chess(),
+          chess: new ChessGame(),
           turn: "white",
-          switchTurnsIn: Math.floor(Math.random() * 3) + 3,
+          switchTurnsIn: Math.floor(Math.random() * 13) + 3,
         };
       }
       socket.join(room);
@@ -52,21 +52,18 @@ const SocketIo = (server) => {
         console.error(`Game not found for room: ${room}`);
         return;
       }
-      socket.emit("update", { fen: game.chess.fen(), turn: game.turn });
+      socket.emit("update", { fen: game.chess.getFen(), turn: game.turn });
     });
 
     socket.on("move", (move, room) => {
       const game = games[room];
-
-      console.log("FEN before move: ", game.chess.fen());
-      console.log("move", move, room);
 
       if (!game) {
         console.error(`Game not found for room: ${room}`);
         return;
       }
       try {
-        const result = game.chess.move(move);
+        const result = game.chess.move(move.from, move.to);
         game.turn === "white" ? (game.turn = "black") : (game.turn = "white");
         if (result) {
           if (game.chess.isGameOver()) {
@@ -76,7 +73,7 @@ const SocketIo = (server) => {
             );
           }
           io.to(room).emit("update", {
-            fen: game.chess.fen(),
+            fen: game.chess.getFen(),
             turn: game.turn,
           });
           game.switchTurnsIn--;
