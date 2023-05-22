@@ -1,10 +1,9 @@
 const express = require("express");
 const http = require("http");
 const cors = require("cors");
+require("dotenv").config();
 
 const SocketIo = require("./utils/socket");
-
-require("dotenv").config();
 
 (async () => {
   const app = express();
@@ -13,7 +12,7 @@ require("dotenv").config();
   const server = http.createServer(app);
   SocketIo(server);
 
-  server.listen(3001, () => {
+  server.listen(process.env.PORT || 3001, () => {
     console.log("listening on port 3001");
   });
 })();

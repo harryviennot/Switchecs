@@ -7,8 +7,6 @@ export const SocketProvider = ({ children }) => {
   const [name, setName] = useState("");
   const [roomPin, setRoomPin] = useState("");
 
-  // console.log("socket", socket.id);
-
   return (
     <SocketContext.Provider
       value={{ socket, name, setName, roomPin, setRoomPin }}

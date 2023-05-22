@@ -11,10 +11,12 @@ const GamePage = () => {
   const spinTimeout = useRef(null);
   const { gamePin } = useParams();
   const { socket } = useContext(SocketContext);
-  const [turn, setTurn] = useState("white");
+  const [playerTurn, setPlayerTurn] = useState("white");
   const [color, setColor] = useState("white");
   const [result, setResult] = useState("");
   const navigate = useNavigate();
+
+  console.log("turn", playerTurn);
 
   const boardStyle = {
     borderRadius: "5px",
@@ -25,7 +27,7 @@ const GamePage = () => {
   const lightSquareStyle = { backgroundColor: "#F5F5DC" };
 
   const handleMove = (move) => {
-    if (turn !== color) return;
+    if (playerTurn !== color) return;
     socket.emit("move", move, gamePin);
   };
 
@@ -40,10 +42,9 @@ const GamePage = () => {
 
   useEffect(() => {
     const onUpdate = (data) => {
-      console.log("update", data);
       const { fen, turn } = data;
       setFen(fen);
-      setTurn(turn);
+      setPlayerTurn(turn);
     };
 
     const onColor = (color) => {
@@ -51,7 +52,6 @@ const GamePage = () => {
     };
 
     const onSwitchTurns = () => {
-      console.log("switch turns");
       setSpinning(true);
 
       if (spinTimeout.current) {
@@ -70,7 +70,6 @@ const GamePage = () => {
     };
 
     const userLeft = (gamePin) => {
-      console.log("user left");
       setResult("Opponent left");
     };
 
@@ -99,7 +98,9 @@ const GamePage = () => {
     <div className={"game-page " + color}>
       <div className="game-info">
         <small className="game-pin">Game Pin: {gamePin}</small>
-        <h1>{result || turn === color ? "Your turn" : "Opponent's turn"}</h1>
+        <h1>
+          {result || playerTurn === color ? "Your turn" : "Opponent's turn"}
+        </h1>
       </div>
       <div className={spinning ? "chessboard spinning" : "chessboard"}>
         <Chessboard
