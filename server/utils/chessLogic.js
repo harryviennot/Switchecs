@@ -5,6 +5,9 @@ class ChessGame {
     this.gameOver = false;
     this.gameStatus = "";
     this.winner = "";
+    this.longCastle = [true, true];
+    this.shortCastle = [true, true];
+    this.castled = [0, 0];
   }
 
   isGameOver() {
@@ -29,7 +32,6 @@ class ChessGame {
     const newfrom = [x, y];
     const newto = [x2, y2];
     if ((this.getFenValue(newfrom[0], newfrom[1])).charCodeAt(0) > 90 !== (this.turn === "black")) {
-      console.log("wrong color")
       return false
     }
     var verify = this.Verification(newfrom, newto);
@@ -49,6 +51,26 @@ class ChessGame {
       )
         Matrix[8 - newto[1]][newto[0] - 1] = "q";
       Matrix[8 - newfrom[1]][newfrom[0] - 1] = "-";
+      if (this.castled[0] === 1) {
+        Matrix[7][5] = 'R'
+        Matrix[7][7] = "-";
+        this.castled[0] = 0;
+      }
+      if (this.castled[1] === 1) {
+        Matrix[0][5] = 'r'
+        Matrix[0][7] = "-";
+        this.castled[1] = 0;
+      }
+      if (this.castled[0] === 2) {
+        Matrix[7][3] = 'R'
+        Matrix[7][0] = "-";
+        this.castled[0] = 0;
+      }
+      if (this.castled[1] === 2) {
+        Matrix[0][3] = 'r'
+        Matrix[0][0] = "-";
+        this.castled[0] = 0;
+      }
       this.fen = this.MatToFen(Matrix);
       if (
         this.allcheck(
@@ -57,12 +79,10 @@ class ChessGame {
         )[0] !== false
       ) {
         this.fen = previousBoard;
-        console.log("check")
         return false
       }
       else this.ChangeTurn();
     }
-    console.log("verify", verify);
     // MOVED THIS SECTION AT THE END TO DISPLAY THE STATUS AFTER THE MOVE, AND NOT HAVING TO WAIT THE ENEMY TURN TO DISPLAY IT
 
     if (this.allcheck(this.turn === "black", false)[0] !== false) {
@@ -74,7 +94,6 @@ class ChessGame {
       ) {
         this.gameOver = true;
         this.gameStatus = "CHECKMATE";
-        console.log("checkmate")
         this.winner = (this.turn === "black")? "white" : "black"
         return true;
       }
@@ -92,7 +111,6 @@ class ChessGame {
       this.turn = "black";
     else
       this.turn = "white";
-    console.log("turn :" + this.turn)
   }
 
   Verification(ori, next) {
@@ -106,9 +124,9 @@ class ChessGame {
       return false;
     switch (piece) {
       case "r":
-        return this.Tower(ori, next);
+        return this.Tower(true, ori, next);
       case "R":
-        return this.Tower(ori, next);
+        return this.Tower(false, ori, next);
       case "n":
         return this.Knight(ori, next);
       case "N":
@@ -118,13 +136,13 @@ class ChessGame {
       case "B":
         return this.Joker(ori, next);
       case "q":
-        return this.Queen(ori, next);
+        return this.Queen(true, ori, next);
       case "Q":
-        return this.Queen(ori, next);
+        return this.Queen(false, ori, next);
       case "k":
-        return this.King(ori, next);
+        return this.King(true, ori, next);
       case "K":
-        return this.King(ori, next);
+        return this.King(false, ori, next);
       case "p":
         return this.Pawn(ori, next, true);
       case "P":
@@ -203,13 +221,18 @@ class ChessGame {
     return matrix[y - 1][x - 1];
   }
 
-  Tower(ori, next) {
+  Tower(isBlack, ori, next) {
     var bonus = 1;
     if (ori[0] === next[0]) {
       if (ori[1] > next[1]) bonus = -1;
       for (let i = ori[1] + bonus; i !== next[1]; i += bonus) {
         if (this.getFenValue(ori[0], i) !== "-") return false;
       }
+                                                                   
+      if (this.getFenValue(ori[0], ori[1]) !== (isBlack? 'q' : 'Q') && ((ori[0] === 8 && ori[1] === 8 && isBlack) || (ori[0] === 8 && ori[1] === 1 && !isBlack)))
+        this.shortCastle[isBlack? 1 : 0] = false
+      if (this.getFenValue(ori[0], ori[1]) !== (isBlack? 'q' : 'Q') && ((ori[0] === 1 && ori[1] === 8 && isBlack) || (ori[0] === 1 && ori[1] === 1 && !isBlack)))
+        this.longCastle[isBlack? 1 : 0] = false
       return true;
     }
     if (ori[1] === next[1]) {
@@ -217,6 +240,10 @@ class ChessGame {
       for (let i = ori[0] + bonus; i !== next[0]; i += bonus) {
         if (this.getFenValue(i, ori[1]) !== "-") return false;
       }
+      if (this.getFenValue(ori[0], ori[1]) !== (isBlack? 'q' : 'Q') && ((ori[0] === 8 && ori[1] === 8 && isBlack) || (ori[0] === 8 && ori[1] === 1 && !isBlack)))
+        this.shortCastle[isBlack? 1 : 0] = false
+      if (this.getFenValue(ori[0], ori[1]) !== (isBlack? 'q' : 'Q') && ((ori[0] === 1 && ori[1] === 8 && isBlack) || (ori[0] === 1 && ori[1] === 1 && !isBlack)))
+        this.longCastle[isBlack? 1 : 0] = false
       return true;
     }
     return false;
@@ -280,18 +307,44 @@ class ChessGame {
     return false;
   }
 
-  King(ori, next) {
+  King(isBlack, ori, next) {
     const diffX = Math.abs(ori[0] - next[0]);
     const diffY = Math.abs(ori[1] - next[1]);
 
     if (diffX > 1 || diffY > 1) {
+      if (next[0] === 7 && next[1] === 1 && ori[0] === 5 && ori[1] === 1 && !isBlack && this.shortCastle[0] && this.allcheck(isBlack, next)[0] === false && this.allcheck(isBlack, ori)[0] === false && this.allcheck(isBlack, [6, 1])[0] === false && this.getFenValue(8, 1) === 'R' && this.getFenValue(6, 1) === '-') {
+        this.shortCastle[0] = false
+        this.longCastle[0] = false
+        this.castled[0] = 1;
+        return true
+      }
+      if (next[0] === 3 && next[1] === 1 && ori[0] === 5 && ori[1] === 1 && !isBlack && this.longCastle[0] && this.allcheck(isBlack, next)[0] === false && this.allcheck(isBlack, ori)[0] === false && this.allcheck(isBlack, [4, 1])[0] === false && this.getFenValue(1, 1) === 'R' && this.getFenValue(2, 1) === '-' && this.getFenValue(4, 1) === '-'){
+        this.shortCastle[0] = false
+        this.longCastle[0] = false
+        this.castled[0] = 2;
+        return true
+      }
+      if (next[0] === 3 && next[1] === 8 && ori[0] === 5 && ori[1] === 8 && isBlack && this.longCastle[1] && this.allcheck(isBlack, next)[0] === false && this.allcheck(isBlack, ori)[0] === false && this.allcheck(isBlack, [4, 8])[0] === false && this.getFenValue(1, 8) === 'r' && this.getFenValue(2, 8) === '-' && this.getFenValue(4, 8) === '-') {
+        this.shortCastle[1] = false
+        this.longCastle[1] = false
+        this.castled[1] = 2;
+        return true
+      }
+      if (next[0] === 7 && next[1] === 8 && ori[0] === 5 && ori[1] === 8 && isBlack && this.shortCastle[1] && this.allcheck(isBlack, next)[0] === false && this.allcheck(isBlack, ori)[0] === false && this.allcheck(isBlack, [6, 8])[0] === false && this.getFenValue(8, 8) === 'r' && this.getFenValue(6, 8) === '-') {
+        this.shortCastle[1] = false
+        this.longCastle[1] = false
+        this.castled[1] = 1;
+        return true
+      }
       return false;
     }
+    this.shortCastle[isBlack? 1 : 0] = false
+    this.longCastle[isBlack? 1 : 0] = false
     return true;
   }
 
-  Queen(ori, next) {
-    return this.Joker(ori, next) || this.Tower(ori, next);
+  Queen(isBlack, ori, next) {
+    return this.Joker(ori, next) || this.Tower(isBlack, ori, next);
   }
 
   RookCheck(isBlack, KingSquare) {
@@ -567,7 +620,7 @@ class ChessGame {
         const piece = this.getFenValue(x, y);
         switch (piece) {
           case bonusforsacrifice[0]: {
-            IsDoable = this.Tower([x, y], chesscase);
+            IsDoable = this.Tower(!IsWhite, [x, y], chesscase);
             break;
           }
           case bonusforsacrifice[1]: {
@@ -579,7 +632,7 @@ class ChessGame {
             break;
           }
           case bonusforsacrifice[3]: {
-            IsDoable = this.Queen([x, y], chesscase);
+            IsDoable = this.Queen(!IsWhite, [x, y], chesscase);
             break;
           }
           case bonusforsacrifice[4]: {
