@@ -4,6 +4,7 @@ class ChessGame {
     this.turn = "white";
     this.gameOver = false;
     this.gameStatus = "";
+    this.winner = "";
   }
 
   isGameOver() {
@@ -27,6 +28,10 @@ class ChessGame {
     if (isNaN(x2)) x2 = this.getLetterValue(to[0]);
     const newfrom = [x, y];
     const newto = [x2, y2];
+    if ((this.getFenValue(newfrom[0], newfrom[1])).charCodeAt(0) > 90 !== (this.turn === "black")) {
+      console.log("wrong color")
+      return false
+    }
     var verify = this.Verification(newfrom, newto);
     var previousBoard = this.fen;
     if (verify) {
@@ -50,11 +55,14 @@ class ChessGame {
           Matrix[8 - newto[1]][newto[0] - 1].charCodeAt(0) > 90,
           false
         )[0] !== false
-      )
+      ) {
         this.fen = previousBoard;
+        console.log("check")
+        return false
+      }
       else this.ChangeTurn();
     }
-
+    console.log("verify", verify);
     // MOVED THIS SECTION AT THE END TO DISPLAY THE STATUS AFTER THE MOVE, AND NOT HAVING TO WAIT THE ENEMY TURN TO DISPLAY IT
 
     if (this.allcheck(this.turn === "black", false)[0] !== false) {
@@ -66,16 +74,25 @@ class ChessGame {
       ) {
         this.gameOver = true;
         this.gameStatus = "CHECKMATE";
-        return false;
+        console.log("checkmate")
+        this.winner = (this.turn === "black")? "white" : "black"
+        return true;
       }
       this.gameStatus = "CHECK";
     } else this.gameStatus = "";
     return verify;
   }
 
+  getTurn() {
+    return this.turn;
+  }
+
   ChangeTurn() {
-    if (this.turn === "white") this.turn = "black";
-    else this.turn = "white";
+    if (this.turn === "white") 
+      this.turn = "black";
+    else
+      this.turn = "white";
+    console.log("turn :" + this.turn)
   }
 
   Verification(ori, next) {

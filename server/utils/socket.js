@@ -52,7 +52,8 @@ const SocketIo = (server) => {
         console.error(`Game not found for room: ${room}`);
         return;
       }
-      socket.emit("update", { fen: game.chess.getFen(), turn: game.turn });
+      socket.emit("update", { fen: game.chess.getFen(), turn: game.chess.getTurn() });
+      console.log(game.chess.getTurn())
     });
 
     socket.on("move", (move, room) => {
@@ -64,7 +65,7 @@ const SocketIo = (server) => {
       }
       try {
         const result = game.chess.move(move.from, move.to);
-        game.turn === "white" ? (game.turn = "black") : (game.turn = "white");
+        game.turn === game.chess.getTurn()
         if (result) {
           if (game.chess.isGameOver()) {
             io.to(room).emit(
@@ -74,7 +75,7 @@ const SocketIo = (server) => {
           }
           io.to(room).emit("update", {
             fen: game.chess.getFen(),
-            turn: game.turn,
+            turn: game.chess.getTurn(),
           });
           game.switchTurnsIn--;
         } else {
