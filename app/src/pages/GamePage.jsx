@@ -14,6 +14,7 @@ const GamePage = () => {
   const [playerTurn, setPlayerTurn] = useState("white");
   const [color, setColor] = useState("white");
   const [result, setResult] = useState("");
+  const [gameEnded, setGameEnded] = useState(false);
   const navigate = useNavigate();
 
   console.log("turn", playerTurn);
@@ -27,8 +28,9 @@ const GamePage = () => {
   const lightSquareStyle = { backgroundColor: "#F5F5DC" };
 
   const handleMove = (move) => {
-    if (playerTurn !== color) return;
+    if (playerTurn !== color && !gameEnded) return;
     socket.emit("move", move, gamePin);
+    setResult("");
   };
 
   const handleLeaveGame = () => {
@@ -67,6 +69,11 @@ const GamePage = () => {
 
     const onGameWon = (winner) => {
       setResult(winner === color ? "You won!" : "You lost!");
+      setGameEnded(true);
+    };
+
+    const onCheck = () => {
+      setResult("Check!");
     };
 
     const userLeft = (gamePin) => {
@@ -77,12 +84,16 @@ const GamePage = () => {
     socket.on("color", onColor);
     socket.on("switch turns", onSwitchTurns);
     socket.on("game won", onGameWon);
+    socket.on("check", onCheck);
     socket.on("userLeft", userLeft);
 
     return () => {
       socket.off("update", onUpdate);
       socket.off("color", onColor);
       socket.off("switch turns", onSwitchTurns);
+      socket.off("game won", onGameWon);
+      socket.off("check", onCheck);
+      socket.off("userLeft", userLeft);
       if (spinTimeout.current) {
         clearTimeout(spinTimeout.current);
       }

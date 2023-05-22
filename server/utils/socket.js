@@ -52,8 +52,11 @@ const SocketIo = (server) => {
         console.error(`Game not found for room: ${room}`);
         return;
       }
-      socket.emit("update", { fen: game.chess.getFen(), turn: game.chess.getTurn() });
-      console.log(game.chess.getTurn())
+      socket.emit("update", {
+        fen: game.chess.getFen(),
+        turn: game.chess.getTurn(),
+      });
+      console.log(game.chess.getTurn());
     });
 
     socket.on("move", (move, room) => {
@@ -65,18 +68,18 @@ const SocketIo = (server) => {
       }
       try {
         const result = game.chess.move(move.from, move.to);
-        game.turn === game.chess.getTurn()
+        game.turn === game.chess.getTurn();
         if (result) {
-          if (game.chess.isGameOver()) {
-            io.to(room).emit(
-              "game won",
-              game.turn === "white" ? "black" : "white"
-            );
+          if (game.chess.gameStatus() === "checkmate") {
+            io.to(room).emit("game won", game.chess.winner());
+          } else if (game.chess.gameStatus() === "check") {
+            io.to(room).emit("check");
+          } else {
+            io.to(room).emit("update", {
+              fen: game.chess.getFen(),
+              turn: game.chess.getTurn(),
+            });
           }
-          io.to(room).emit("update", {
-            fen: game.chess.getFen(),
-            turn: game.chess.getTurn(),
-          });
           game.switchTurnsIn--;
         } else {
           socket.emit("invalid move", move);
